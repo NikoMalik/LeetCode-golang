@@ -62,7 +62,7 @@ func twoSum(nums []int, target int) []int { // O(n²)
 
 }
 
-// second solution using hash table more efficient but more hard O(n)
+// second solution using hash table more efficient but more hard to understand O(n)
 func twoSum1(nums []int, target int) []int {
 	numMap := make(map[int]int, len(nums))
 	//make(map[int]int, len(nums)) creates a hash table with initial capacity equal to the slice length of nums.
