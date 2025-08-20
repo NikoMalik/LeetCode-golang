@@ -2,36 +2,60 @@ package main
 
 import (
 	"fmt"
-	"sort"
+	"slices"
+	"unsafe"
 )
 
 func findPairs(nums []int, k int) int {
 	if k < 0 || len(nums) == 0 {
 		panic("invalid input")
 	}
-	sort.Ints(nums)
+	slices.Sort(nums)
 
-	ans := 0
 	n := len(nums)
+	ans := 0
 	i := 0
 
-	for i < n-1 {
+	base := unsafe.Pointer(unsafe.SliceData(nums))
+	size := unsafe.Sizeof(nums[0])
 
-		if i > 0 && nums[i] == nums[i-1] {
+	for i < n-1 {
+		if i > 0 && *(*int)(unsafe.Add(base, uintptr(i)*size)) == *(*int)(unsafe.Add(base, uintptr(i-1)*size)) {
 			i++
 			continue
 		}
 
-		for j := i + 1; j < n; j++ {
-			diff := nums[j] - nums[i]
-			if diff == k {
-				ans++
-				break
-			} else if diff > k {
-				break
+		a := *(*int)(unsafe.Add(base, uintptr(i)*size))
+		j := i + 1
+
+		for j < n {
+			for ; j+3 < n; j += 4 {
+				b0 := *(*int)(unsafe.Add(base, uintptr(j+0)*size))
+				b1 := *(*int)(unsafe.Add(base, uintptr(j+1)*size))
+				b2 := *(*int)(unsafe.Add(base, uintptr(j+2)*size))
+				b3 := *(*int)(unsafe.Add(base, uintptr(j+3)*size))
+
+				if b0-a == k || b1-a == k || b2-a == k || b3-a == k {
+					ans++
+					goto nextI
+				}
+				if b3-a > k {
+					goto nextI
+				}
+			}
+
+			for ; j < n; j++ {
+				b := *(*int)(unsafe.Add(base, uintptr(j)*size))
+				diff := b - a
+				if diff == k {
+					ans++
+					goto nextI
+				} else if diff > k {
+					goto nextI
+				}
 			}
 		}
-
+	nextI:
 		i++
 	}
 
